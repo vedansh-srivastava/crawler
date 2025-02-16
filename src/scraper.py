@@ -1,10 +1,14 @@
 import json
 from urllib.parse import urljoin, urlparse
 from playwright.async_api import Page
-from src.config import PRODUCT_PATTERNS, BLOCKED_RESOURCES, BLOCKED_KEYWORDS, SCROLL_WAIT_TIME, CONTENT_LOAD_TIME, MAX_SCROLLS, PAGE_FETCH_TIMEOUT, MAX_RETRIES, RETRY_DELAY
+from src.config import (
+    PRODUCT_PATTERNS, BLOCKED_RESOURCES, BLOCKED_KEYWORDS, SCROLL_WAIT_TIME,
+    CONTENT_LOAD_TIME, MAX_SCROLLS, PAGE_FETCH_TIMEOUT, MAX_RETRIES, RETRY_DELAY
+)
 from src.utils import log
 from furl import furl
 import asyncio
+
 
 class Scraper:
     def __init__(self, output_file):
@@ -15,13 +19,15 @@ class Scraper:
 
     def should_abort_req(self, request):
         """Determines whether a request should be blocked (e.g., images, tracking scripts)."""
-        return request.resource_type in BLOCKED_RESOURCES or any(keyword in request.url for keyword in BLOCKED_KEYWORDS)
+        return request.resource_type in BLOCKED_RESOURCES or any(
+            keyword in request.url for keyword in BLOCKED_KEYWORDS
+        )
 
     async def scroll_page(self, page: Page):
         """Scrolls down the page to load dynamic content."""
         log(f"📜 Scrolling down to load all content...")
         last_height = await page.evaluate("document.body.scrollHeight")
-        
+
         for scroll in range(MAX_SCROLLS):
             await page.wait_for_timeout(CONTENT_LOAD_TIME)
             await page.evaluate("window.scrollBy(0, document.body.scrollHeight)")
@@ -38,7 +44,9 @@ class Scraper:
         log(f"🎭 Fetching dynamic content for: {url}")
 
         try:
-            await page.route("**/*", lambda route, request: route.abort() if self.should_abort_req(request) else route.continue_())
+            await page.route(
+                "**/*", lambda route, request: route.abort() if self.should_abort_req(request) else route.continue_()
+            )
 
             await page.set_extra_http_headers({
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
@@ -46,7 +54,7 @@ class Scraper:
                 "Accept-Encoding": "gzip, deflate, br",
                 "Upgrade-Insecure-Requests": "1",
             })
-            
+
             delay = RETRY_DELAY
             response = None  # Initialize response to avoid UnboundLocalError
 
@@ -70,7 +78,7 @@ class Scraper:
 
             if not response or response.status != 200:
                 log(f"❌ Failed to load {url} after {MAX_RETRIES} attempts.")
-                return [], url
+                return [], False
 
             await self.scroll_page(page)  # Scroll to load more content
 
@@ -86,7 +94,7 @@ class Scraper:
                     link = urljoin(url, link)
                     # Remove fragment identifiers after `#`
                     f = furl(link)
-                    f.fragment = ''  
+                    f.fragment = ''
                     link = f.url
                     link_domain = urlparse(link).netloc.replace('www.', '')
                     if domain != link_domain or link in self.visited_urls:
@@ -97,6 +105,7 @@ class Scraper:
                         log(f"🛒 Found product URL: {link}")
                     new_urls.add(link)
                 self.domain_product_count[domain] = self.domain_product_count.get(domain, 0) + len(product_links)
+                log(f"✅ Total products for domain {domain} ----> {self.domain_product_count[domain]}")
 
                 if product_links:
                     with open(self.output_file, 'a', encoding='utf-8') as f:
@@ -108,12 +117,13 @@ class Scraper:
                         }
                         f.write(json.dumps(result, ensure_ascii=False) + "\n")
                     log(f"✅ Saved {len(product_links)} product links from {url}")
-            
-            # # Optimization with minor error: We are ignoring child links from URLs with 0 product links to avoid unwanted crawling.
+
+        ## [not applied] Optimization with minor error (can matter largely for domains like ajio.com): 
+        ## We are ignoring child links from URLs with 0 product links to avoid unwanted crawling.
             # if not product_links:
-            #     return list(), url
-            return list(new_urls), url
+            #     return list() for new urls identified.
+            return list(new_urls), True
 
         except Exception as e:
             log(f"❌ Error processing {url}: {repr(e)}")
-            return [], url
+            return [], False

@@ -1,8 +1,14 @@
 # Maximum number of scrolls for loading dynamic content
 MAX_SCROLLS = 500
 
-# Number of concurrent scraping tasks
-CONCURRENCY = 1
+# Auto scale to increase throughput based on system
+AUTO_SCALE = True
+
+# Maximum concurrency limits the concurrency for the scraping tasks.
+# Note if auto scaling is enabled, then we will determine the maximum concurrency based on system resources.
+# However, in that case also we will not exceed this limit.
+# If auto scaling is disabled, then we will use this as the default concurrency for the scraping.
+MAXIMUM_CONCURRENCY_LIMIT = 10
 
 # URL patterns to identify product pages
 # https://www.flipkart.com : /p/
@@ -59,3 +65,6 @@ MAX_RETRIES = 3
 
 # Initial delay (in seconds)
 RETRY_DELAY = 2
+
+# URL Task timeout (in seconds) for async URL processing.
+URL_TASK_TIMEOUT = 150

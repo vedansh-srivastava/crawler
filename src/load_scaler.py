@@ -58,8 +58,8 @@ class LoadScaler:
             #   This ensures we don’t overload the system while keeping a good level of parallelism.
             # - If `os.cpu_count()` returns None (which happens in rare cases), we fall back to 2.
             # - We also ensure the concurrency does not exceed `self.max_limit` to maintain control.
-            return min(self.max_limit, os.cpu_count() // 4 if os.cpu_count() else 2)
-        return self.max_limit  # Use fixed concurrency when scaling is disabled
+            return max(MIN_CONCURRENCY, min(self.max_limit, os.cpu_count() // 4 if os.cpu_count() else 2))
+        return max(MIN_CONCURRENCY, self.max_limit)  # Use fixed concurrency when scaling is disabled
 
     def adjust_concurrency(self, success):
         """
@@ -74,7 +74,7 @@ class LoadScaler:
 
             # If enough tasks finish quickly, increase concurrency
             if self.fast_completions >= self.ADAPTIVE_THRESHOLD and self.concurrency < self.max_limit:
-                self.concurrency += min(self.ADAPTIVE_STEP, self.max_limit)
+                self.concurrency = min(self.concurrency + self.ADAPTIVE_STEP, self.max_limit)
                 log(f"📈 Increasing concurrency to {self.concurrency}")
 
                 # Reset fast completion counter after scaling up

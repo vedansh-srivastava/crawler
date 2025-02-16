@@ -7,7 +7,8 @@ from urllib.parse import urlparse
 
 from src.config import (
     INPUT_FILE, OUTPUT_DIR, HEADLESS_MODE, URL_TASK_TIMEOUT,
-    MAXIMUM_CONCURRENCY_LIMIT, AUTO_SCALE, DOMAIN_CONCURRENCY_LIMIT
+    MAXIMUM_CONCURRENCY_LIMIT, AUTO_SCALE, DOMAIN_CONCURRENCY_LIMIT,
+    DOMAIN_SCRAPING_TIMEOUT
 )
 from src.scraper import Scraper
 from src.queue_manager import QueueManager
@@ -115,12 +116,14 @@ async def main():
         domain_concurrency_semaphore = asyncio.Semaphore(DOMAIN_CONCURRENCY_LIMIT)
         
         domain_tasks = [
-            asyncio.create_task(process_domain(url, browser, domain_concurrency_semaphore))
+            asyncio.create_task(
+                asyncio.wait_for(process_domain(url, browser, domain_concurrency_semaphore), timeout=DOMAIN_SCRAPING_TIMEOUT * 3600)
+            )
             for url in start_urls
         ]
 
         log("🚀 All domain scraping tasks started. Waiting for completion...")
-        await asyncio.gather(*domain_tasks)
+        await asyncio.gather(*domain_tasks, return_exceptions=True)
 
         log("🎉 Crawling completed. Closing browser.")
         await browser.close()

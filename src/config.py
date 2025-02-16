@@ -13,6 +13,9 @@ MAXIMUM_CONCURRENCY_LIMIT = 32
 # Domain concurrency limits the concurrency for async domain scraping
 DOMAIN_CONCURRENCY_LIMIT = 3
 
+# Domain scraping timeout (in hours)
+DOMAIN_SCRAPING_TIMEOUT = 5
+
 # URL patterns to identify product pages
 # https://www.flipkart.com : /p/
 # https://www.amazon.in : /dp/

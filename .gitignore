@@ -1,4 +1,2 @@
-logs/*
 src/__pycache__/
-output/*
 !.gitignore

@@ -8,10 +8,10 @@ AUTO_SCALE = True
 # Note if auto scaling is enabled, then we will determine the maximum concurrency based on system resources.
 # However, in that case also we will not exceed this limit.
 # If auto scaling is disabled, then we will use this as the default concurrency for the scraping.
-MAXIMUM_CONCURRENCY_LIMIT = 32
+MAXIMUM_CONCURRENCY_LIMIT = 64
 
 # Domain concurrency limits the concurrency for async domain scraping
-DOMAIN_CONCURRENCY_LIMIT = 3
+DOMAIN_CONCURRENCY_LIMIT = 10
 
 # Domain scraping timeout (in hours)
 DOMAIN_SCRAPING_TIMEOUT = 5

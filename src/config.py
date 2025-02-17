@@ -1,14 +1,14 @@
 # Maximum number of scrolls for loading dynamic content
 MAX_SCROLLS = 500
 
-# Auto scale to increase throughput based on system
+# Auto scale to increase throughput based on system resources per domain.
 AUTO_SCALE = True
 
-# Maximum concurrency limits the concurrency for the scraping tasks.
+# Maximum concurrency limits the concurrency for the scraping tasks per domain.
 # Note if auto scaling is enabled, then we will determine the maximum concurrency based on system resources.
 # However, in that case also we will not exceed this limit.
 # If auto scaling is disabled, then we will use this as the default concurrency for the scraping.
-MAXIMUM_CONCURRENCY_LIMIT = 64
+MAXIMUM_CONCURRENCY_LIMIT = 8
 
 # Domain concurrency limits the concurrency for async domain scraping
 DOMAIN_CONCURRENCY_LIMIT = 10
@@ -25,7 +25,7 @@ DOMAIN_SCRAPING_TIMEOUT = 5
 # https://www.snapdeal.com/ : /product/
 # https://bluorng.com/ : /products/
 # https://www.jaywalking.in/ : /products/
-# https://www.ajio.com/ : /p/
+# https://www.cleardekho.com/ : /product/
 # https://www.urbanmonkey.com/ : /products/
 PRODUCT_PATTERNS = ["/p/", "/products/", "/product/", "/dp/"]
 
@@ -64,7 +64,7 @@ SCROLL_WAIT_TIME = 2000
 CONTENT_LOAD_TIME = 2000
 
 # Page fetch time out (ms)
-PAGE_FETCH_TIMEOUT = 120000
+PAGE_FETCH_TIMEOUT = 200000
 
 # Max retries while page fetch
 MAX_RETRIES = 3
@@ -73,4 +73,4 @@ MAX_RETRIES = 3
 RETRY_DELAY = 2
 
 # URL Task timeout (in seconds) for async URL processing.
-URL_TASK_TIMEOUT = 150
+URL_TASK_TIMEOUT = 300
